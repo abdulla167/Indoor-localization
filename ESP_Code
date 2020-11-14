@@ -1,0 +1,130 @@
+#include "ESP8266WiFi.h"
+#include <ESP8266HTTPClient.h>
+#define BLINK_PERIOD 250
+#include <SPI.h>
+#include <iostream>   
+#include <string>  
+
+long lastBlinkMillis;
+boolean ledState;
+
+#define SCAN_PERIOD 5000
+long lastScanMillis;
+ double data[]= {0,0,0,0,0,0};
+
+
+
+
+void setup()
+ {
+  
+  Serial.begin(115200);
+
+   WiFi.begin("AndroidAP", "msat6565");   //WiFi connection
+ 
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+ 
+    delay(500);
+    Serial.println("Waiting for connection");
+ 
+  }
+ 
+  pinMode(LED_BUILTIN, OUTPUT);
+ 
+  WiFi.mode(WIFI_STA);
+  
+  delay(100);
+}
+
+
+
+void loop()   
+{
+ 
+  long currentMillis = millis();
+
+  // blink LED
+  
+  if (currentMillis - lastBlinkMillis > BLINK_PERIOD)
+  {
+    digitalWrite(LED_BUILTIN, ledState);
+    ledState = !ledState;
+    lastBlinkMillis = currentMillis;
+  }
+  
+  // trigger Wi-Fi network scan
+  
+  if (currentMillis - lastScanMillis > SCAN_PERIOD)
+  {
+    WiFi.scanNetworks(true);
+    //Serial.print("\nScan start ... ");
+    lastScanMillis = currentMillis;
+  }
+  
+  // print out Wi-Fi network scan result upon completion
+  int n = WiFi.scanComplete();
+  if(n >= 0)
+  {
+   // Serial.printf("%d network(s) found\n", n);
+  
+    for (int i = 0; i < n; i++)
+    {
+      
+//      Serial.printf("%d: %s, Ch:%d (%ddBm) %s\n", i+1, WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE ? "open" : "");
+     
+if(String(WiFi.SSID(i).c_str()) == String( "STUDBME2"))
+{
+ 
+ data[0] = WiFi.RSSI(i);
+}
+
+if(String(WiFi.SSID(i).c_str()) == String("CMP_LAB1"))
+{
+  data[1] = WiFi.RSSI(i);
+}
+
+if(String(WiFi.SSID(i).c_str()) == String( "StudBME1"))
+{ 
+ data[2] = WiFi.RSSI(i);
+}
+
+if(String(WiFi.SSID(i).c_str()) == String( "SBME_STAFF"))
+{ 
+ data[3] = WiFi.RSSI(i);
+}
+
+if(String(WiFi.SSID(i).c_str()) == String( "DRWESH"))
+{ 
+ data[4] = WiFi.RSSI(i);
+}
+
+if(String(WiFi.SSID(i).c_str()) == String( "router"))
+{ 
+ data[5] = WiFi.RSSI(i);
+}
+
+
+    }
+    Serial.println(String(data[0])+  "," + String(data[1]) + "," + String(data[2]) + "," + String(data[3])+ "," + String(data[4]) + "," + String(data[5]));
+    WiFi.scanDelete();
+  }
+    
+  if(WiFi.status()== WL_CONNECTED){   //Check WiFi connection status
+    HTTPClient http; 
+  http.begin("http://dd6c1494ec35.ngrok.io/push");      //Specify request destination
+  http.addHeader("Content-Type", "text/plain");  //Specify content-type header
+ 
+ int httpCode = http.POST(String(data[0])+  "," + String(data[1]) + "," + String(data[2]) + "," + String(data[3])+","+ String(data[4]) + "," + String(data[5]));   //Send the request
+ String payload = http.getString();                  //Get the response payload
+ 
+  Serial.println(httpCode);   //Print HTTP return code
+  Serial.println(payload);    //Print request response payload
+ 
+   http.end();  //Close connection
+ 
+ 
+ }
+ 
+ //Send a request every 30 seconds
+delay(1000); 
+}
