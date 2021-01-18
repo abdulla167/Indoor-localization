@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      ul#horizontal-list {
+        min-width: 696px;
+        list-style: none;
+        padding-top: 20px;
+      }
+
+      ul#horizontal-list li {
+        display: inline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header style="background-color: aqua">
+      <div style="display: inline-block; margin-left: 20px; margin-right: 5cm">
+        <h2 style="margin: 3px; font-weight: bold">Indoor Localization</h2>
+      </div>
+      <div style="display: inline-block">
+        <nav>
+          <ul>
+            <li
+              style="display: inline-block; margin-right: 4px; margin-top: 10px"
+            >
+              <button
+                class="btn btn-primary"
+                (click)="getLocation()"
+                style="width: 100%"
+              >
+                Get Location
+              </button>
+            </li>
+            <li style="display: inline-block; margin-top: 10px">
+              <button
+                class="btn btn-primary"
+                (click)="stopExchangeUpdates()"
+                style="width: 100%"
+              >
+                Disconnect
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <div (window:resize)="onResize($event)" style="position: relative">
+      <img
+        id="map "
+        class="rounded"
+        src="./assets/final-map1.jpg"
+        width="{{ mapWidth }}"
+        height="{{ mapHeight }}"
+        style="
+          position: absolute;
+          margin-left: 50px;
+          margin-top: 20px;
+          z-index: 1;
+        "
+      />
+      <svg
+        id="map-canvas"
+        attr.width="{{ canvasWidth }}px"
+        attr.height="{{ canvasHeight }}px"
+        style="
+          position: absolute;
+          margin-left: 50px;
+          margin-top: 20px;
+          border: 8px solid aqua;
+          z-index: 2;
+        "
+      >
+        <circle
+          id="position"
+          class="progress-ring__circle"
+          attr.cx="{{ positionX }}"
+          attr.cy="{{ positionY }}"
+          attr.r="{{ radius }}"
+          stroke="black"
+          stroke-width="3"
+          fill="red"
+        />
+
+        <animate
+          #x
+          id="x"
+          xlink:href="#position"
+          attributeName="cx"
+          attr.from="{{ previousPositionX }}"
+          attr.to="{{ positionX }}"
+          dur="1s"
+          restart="whenNotActive"
+          begin="indefinite"
+          repeatCount="1"
+          fill="freeze"
+        />
+
+        <animate
+          #y
+          id="y"
+          xlink:href="#position"
+          attributeName="cy"
+          attr.from="{{ previousPositionY }}"
+          attr.to="{{ positionY }}"
+          dur="1s"
+          restart="whenNotActive"
+          begin="indefinite"
+          repeatCount="1"
+          fill="freeze"
+        />
+      </svg>
+    </div>
+  </body>
+</html>
